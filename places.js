@@ -61,7 +61,7 @@ window.onload = () => {
                             const icon = document.createElement('a-image');
                             icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
                             icon.setAttribute('name', place.name);
-                            icon.setAttribute('src', 'https://raw.githubusercontent.com/XingMeansOK/GeoAR.js/master/examples/assets/map-marker.png');
+                            icon.setAttribute('src', './map-marker.png');
                             
                             // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
                             icon.setAttribute('scale', '20, 20');
