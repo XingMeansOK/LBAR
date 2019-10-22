@@ -23,11 +23,13 @@ const loadPlaces = function(coords) {
 // getting places from REST APIs
 function loadPlaceFromAPIs(position) {
   
-    var placeSearch = new AMap.PlaceSearch();
+    var placeSearch = new AMap.PlaceSearch({});
     var cpoint = [116.405467, 39.907761]; //中心点坐标
     placeSearch.searchNearBy('', cpoint, 200, function(status, result) {
 
     });
+    
+    // 定位
 
     const params = {
         radius: 300,    // search places not farther than this value (in meters)
@@ -62,61 +64,104 @@ function loadPlaceFromAPIs(position) {
 
 window.onload = () => {
     const scene = document.querySelector('a-scene');
+    var count = 0;
+    const positionIndicator = document.getElementById("positionIndicator"); // 显示坐标
+    var id; // 位置watcher 的id
+    const options = {
+        // maximumAge:0,//不使用缓存位置，必须获取当前真实值
+        enableHighAccuracy: true, // 使用高精度位置
+        // enableHighAccuracy: false,
+    }
+    
+    if (!navigator.geolocation) {
+        positionIndicator.innerHTML = "Geolocation is not supported by this browser.";
+    } else {
+        positionIndicator.innerHTML = "loading...";
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        id = navigator.geolocation.watchPosition(success, error, options);
+        // setInterval(navigator.geolocation.getCurrentPosition, 100, success, error, options);
+        setInterval(gps, 300);
+    }
+    
+    function gps() {
+        navigator.geolocation.getCurrentPosition(success, error, options);
+    }
+    
+    // 成功获取位置的回调函数
+    function success(position) {
+        positionIndicator.innerHTML =
+            "count: " + (++count) +
+            "<br />Latitude: " + position.coords.latitude +
+            "<br />Longitude: " + position.coords.longitude;
+        
+    }
+    //失败的回调函数
+    function error(error){
+        positionIndicator.innerHTML =
+            "count: " + (++count)
+        console.warn('ERROR(' + err.code + '): ' + err.message);
+    }
+
+    //清除watch1
+    // window.navigator.geolocation.clearWatch(watch1);
+    
+
 
     // first get current user location
-    return navigator.geolocation.getCurrentPosition(function (position) {
+//     return navigator.geolocation.getCurrentPosition(
+//         function (position) {
 
-        // then use it to load from remote APIs some places nearby
-        loadPlaces(position.coords)
-            .then((places) => {
-                places.forEach((place) => {
-                    const latitude = place.location.lat;
-                    const longitude = place.location.lng;
+//             // then use it to load from remote APIs some places nearby
+//             loadPlaces(position.coords)
+//                 .then((places) => {
+//                     places.forEach((place) => {
+//                         const latitude = place.location.lat;
+//                         const longitude = place.location.lng;
 
-                    // add place icon
-                    const icon = document.createElement('a-image');
-                    icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-                    icon.setAttribute('name', place.name);
-                    icon.setAttribute('src', '../assets/map-marker.png');
+//                         // add place icon
+//                         const icon = document.createElement('a-image');
+//                         icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+//                         icon.setAttribute('name', place.name);
+//                         icon.setAttribute('src', '../assets/map-marker.png');
 
-                    // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-                    icon.setAttribute('scale', '20, 20');
+//                         // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
+//                         icon.setAttribute('scale', '20, 20');
 
-                    icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+//                         icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
-                    const clickListener = function(ev) {
-                        ev.stopPropagation();
-                        ev.preventDefault();
+//                         const clickListener = function(ev) {
+//                             ev.stopPropagation();
+//                             ev.preventDefault();
 
-                        const name = ev.target.getAttribute('name');
+//                             const name = ev.target.getAttribute('name');
 
-                        const el = ev.detail.intersection && ev.detail.intersection.object.el;
+//                             const el = ev.detail.intersection && ev.detail.intersection.object.el;
 
-                        if (el && el === ev.target) {
-                            const label = document.createElement('span');
-                            const container = document.createElement('div');
-                            container.setAttribute('id', 'place-label');
-                            label.innerText = name;
-                            container.appendChild(label);
-                            document.body.appendChild(container);
+//                             if (el && el === ev.target) {
+//                                 const label = document.createElement('span');
+//                                 const container = document.createElement('div');
+//                                 container.setAttribute('id', 'place-label');
+//                                 label.innerText = name;
+//                                 container.appendChild(label);
+//                                 document.body.appendChild(container);
 
-                            setTimeout(() => {
-                                container.parentElement.removeChild(container);
-                            }, 1500);
-                        }
-                    };
+//                                 setTimeout(() => {
+//                                     container.parentElement.removeChild(container);
+//                                 }, 1500);
+//                             }
+//                         };
 
-                    icon.addEventListener('click', clickListener);
-                    
-                    scene.appendChild(icon);
-                });
-            })
-    },
-        (err) => console.error('Error in retrieving position', err),
-        {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 27000,
-        }
-    );
+//                         icon.addEventListener('click', clickListener);
+
+//                         scene.appendChild(icon);
+//                     });
+//                 })
+//         },
+//         (err) => console.error('Error in retrieving position', err),
+//         {
+//             enableHighAccuracy: true,
+//             maximumAge: 0,
+//             timeout: 27000,
+//         }
+//     );
 };
