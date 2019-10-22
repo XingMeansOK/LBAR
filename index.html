@@ -1,3 +1,4 @@
+  
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +20,10 @@
 <script src="./places.js"></script>
 
 <body style='margin: 0; overflow: hidden;'>
+    <div class='indicatorContainer'>
+        <div id='positionIndicator'></div>
+    </div>
+    <div id='container'></div>
     <a-scene
         cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
         raycaster="objects: [gps-entity-place];"
