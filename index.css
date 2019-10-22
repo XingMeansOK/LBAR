@@ -14,6 +14,9 @@ div.debug {
     padding: 0.5em;
     width: initial;
 }
+#container {
+    diplay: none;
+}
 .indicatorContainer {
     display: flex;
     flex-direction: column;
@@ -26,7 +29,7 @@ div.debug {
     display: flex;
     justify-content: center;
     width: 100%;
-    font-size:40px;
+    font-size:12px;
     color: white;
 }
 
