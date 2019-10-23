@@ -23,6 +23,7 @@ div.debug {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    display: none;
 }
 
 #positionIndicator,#positionIndicator1 {
