@@ -1,69 +1,43 @@
-span {
-    margin-right: 0.5em;
+#mapcontainer {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 0; left: 0;     /* margin-box充满父元素的padding-box */
+   	 width: 200px; height: 100px;
+    margin: auto;	/* margin-left、margin-right 均分*/
 }
-
-div.debug {
-    position: fixed;
-    bottom: 20px;
-    left: 10px;
-    z-index: 1;
-    width: 100%;
-    background-color: rgba(1, 1, 1, 0.2);
-    color: #ff7500;
-    font-size: 0.75em;
-    padding: 0.5em;
-    width: initial;
-}
-#container {
-    diplay: none;
-}
-.indicatorContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+.amap-logo {
     display: none;
 }
-
-#positionIndicator,#positionIndicator1 {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    font-size:12px;
-    color: white;
+.fullscreen {
+    position: fixed;
+    left: 50px;
+    bottom: 50px;
+    line-height: 0;
 }
-
-#alert-popup {
-    border-radius: 5px;
-    position: absolute;
-    bottom: 10%;
-    left: 5%;
+.fullscreen > svg:nth-child(1){
+    animation-iteration-count: infinite;
+    animation-name: twinkle;
+    animation-duration: 1s;
+}
+.fullscreen > svg:nth-child(2){
+    display: none;
+}
+.fullscreen.exit > svg:nth-child(2){
     display: block;
-    width: 80%;
-    margin: 1em;
-    padding: 0.25em;
-    color: #ff7500;
-    font-size: 0.75em;
-    text-align: center;
-    background-color: white;
 }
-
-#place-label {
-    position: absolute;
-    top: 5%;
-    left: 0%;
-    display: flex;
-    justify-content: center;
+.fullscreen.exit > svg:nth-child(1){
+    display: none;
+}
+@keyframes twinkle {
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+}
+.camerastream {
     width: 100%;
-}
-
-#place-label > span {
-    z-index: 99999;
-    padding: 0.25em;
-    color: #ff7500;
-    text-align: center;
-    background-color: white;
-    font-size: 1.5em;
-    border-radius: 5px;
+    height: 100%;
+    z-index:-1;
+    position: absolute;
 }
