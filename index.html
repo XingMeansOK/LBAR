@@ -15,25 +15,31 @@
 </head>
 
 <link rel="stylesheet" href="./index.css">
+<link rel="stylesheet" href="./radar.css">
 
 <!-- Dynamically add places from Javascript -->
-<script src="./places.js"></script>
+<script src="./utils.js"></script>
+<script src="./processLocation.js"></script>
+<script src="./index.js"></script>
 
 <body style='margin: 0; overflow: hidden;'>
-    <div class='indicatorContainer'>
-        <div id='positionIndicator'></div>
+    <div id='mapcontainer'></div>
+    <a-scene cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;' raycaster="objects: [gps-entity-place];" vr-mode-ui="enabled: false" embedded arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;'>
+        <a-camera gps-camera rotation-reader></a-camera>
+	  </a-scene>
+    <div class="radarbox">
+       <div class="phone">
+          <figure class="front-side">
+            <div class="screen"></div>
+            <div class="camera"></div>
+          </figure>
+          <figure>
+          </figure>
+          <figure></figure>
+          <figure></figure>
+          <figure></figure>
+          <figure></figure>
+        </div>
     </div>
-    <div id='container'></div>
-    <a-scene
-             cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
-             raycaster="objects: [gps-entity-place];"
-             vr-mode-ui="enabled: false"
-             embedded
-             gps-camera-debug
-             arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;'>
-
-        <a-camera gps-camera rotation-reader>
-		</a-camera>
-	</a-scene>
 </body>
 </html>
