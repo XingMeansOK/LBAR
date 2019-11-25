@@ -4,29 +4,26 @@
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"> 
+    <meta name='apple-mobile-web-app-capable' content='yes' />
     <title>GeoAR.js demo</title>
-<!--     <script src='https://xingmeansok.github.io/aframe/dist/aframe-master.js'></script> -->
-    <script src='https://aframe.io/releases/0.9.2/aframe.min.js'></script>
-    <script src='https://raw.githack.com/jeromeetienne/AR.js/master/aframe/build/aframe-ar.min.js'></script>
-    <script>
-        THREEx.ArToolkitContext.baseURL = 'https://raw.githack.com/jeromeetienne/ar.js/master/three.js/'
-    </script>
+    <script src="https://cdn.bootcss.com/three.js/r83/three.js"></script>
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=4f0f5594c4e3c4ae3ce67df92638a154"></script> 
 </head>
 
 <link rel="stylesheet" href="./index.css">
 <link rel="stylesheet" href="./radar.css">
 
-<!-- Dynamically add places from Javascript -->
-<script src="./utils.js"></script>
-<script src="./processLocation.js"></script>
-<script src="./index.js"></script>
-
+<script src="./screenfull.min.js"></script>
+<script src="./deviceorientation.js"></script>
+    
 <body style='margin: 0; overflow: hidden;'>
     <div id='mapcontainer'></div>
-    <a-scene cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;' raycaster="objects: [gps-entity-place];" vr-mode-ui="enabled: false" embedded arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;'>
-        <a-camera gps-camera rotation-reader></a-camera>
-	  </a-scene>
+    <video class="camerastream"></video>
+    <div class="fullscreen">
+        <svg t="1574673025727" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1365" width="48" height="48"><path d="M884.392 970.333H671.887c-23.01 0-41.666-18.656-41.666-41.666 0-23.011 18.656-41.667 41.666-41.667h212.505V691.158c0-23.01 18.656-41.666 41.666-41.666 23.011 0 41.667 18.656 41.667 41.666V887c0 45.959-37.395 83.333-83.333 83.333z m-541.667 0H134.391c-45.949 0-83.333-37.374-83.333-83.333V678.667c0-23.011 18.656-41.667 41.667-41.667s41.667 18.656 41.667 41.667V887h208.333c23.01 0 41.666 18.656 41.666 41.667 0 23.01-18.657 41.666-41.666 41.666z m-250-587.504c-23.01 0-41.667-18.656-41.667-41.667V137c0-45.959 37.384-83.333 83.333-83.333h204.163c23.01 0 41.667 18.657 41.667 41.667S361.564 137 338.554 137H134.391v204.162c0 23.011-18.656 41.667-41.666 41.667z m833.333-8.321c-23.01 0-41.666-18.656-41.666-41.666V137H671.887c-23.01 0-41.666-18.656-41.666-41.667s18.656-41.667 41.666-41.667h212.505c45.938 0 83.333 37.374 83.333 83.333v195.842c0 23.011-18.657 41.667-41.667 41.667z" p-id="1366" fill="#ffffff"></path></svg>
+        
+        <svg t="1574673043864" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1542" width="48" height="48"><path d="M346.9 970.333c-23.03 0-41.667-18.656-41.667-41.667V711.992H92.709c-22.99 0-41.667-18.657-41.667-41.667 0-23.011 18.677-41.667 41.667-41.667h212.524c45.939 0 83.334 37.374 83.334 83.334v216.674c0 23.011-18.677 41.667-41.667 41.667z m324.993-1.078c-23.031 0-41.668-18.656-41.668-41.667V710.913c0-45.959 37.375-83.333 83.334-83.333h212.484c23.029 0 41.666 18.656 41.666 41.667 0 23.01-18.637 41.666-41.666 41.666H713.559v216.675c0 23.011-18.678 41.667-41.666 41.667z m254.15-572.835H713.559c-45.959 0-83.334-37.374-83.334-83.334V96.412c0-23.01 18.637-41.667 41.668-41.667 22.988 0 41.666 18.657 41.666 41.667v216.674h212.484c23.029 0 41.666 18.656 41.666 41.667s-18.637 41.667-41.666 41.667z m-620.81-1.078H92.709c-22.99 0-41.667-18.657-41.667-41.667 0-23.011 18.677-41.667 41.667-41.667h212.524V95.333c0-23.01 18.637-41.667 41.667-41.667 22.99 0 41.667 18.656 41.667 41.667v216.675c0 45.96-37.395 83.334-83.334 83.334z" p-id="1543" fill="#ffffff"></path></svg>
+    </div>
     <div class="radarbox">
        <div class="phone">
           <figure class="front-side">
@@ -41,5 +38,96 @@
           <figure></figure>
         </div>
     </div>
+    <script>
+        var yaw = 0;
+        var pitch = 0;
+        var roll = 0;
+        var scene,camera,renderer = new THREE.WebGLRenderer({alpha: true });
+        const video = document.querySelector('.camerastream');
+        const eventName = getDeviceOrientationEventName();
+        // isSafari();
+        
+        window.onload = () => {
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+   
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            var cube = new THREE.Mesh( geometry, material );
+            scene.add( cube );
+
+            camera.position.z = 5;
+
+            var animate = function () {
+                requestAnimationFrame( animate );
+
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+
+                renderer.render( scene, camera );
+            };
+
+            animate();
+            
+            var constraints = { audio: false, video: { facingMode: { exact: "environment" },aspectRatio:window.innerWidth/window.innerHeight } };
+            getCameraStream(constraints, video);
+            
+            const phoneElement = document.querySelector('.phone');
+            const fullscreenElement = document.querySelector('.fullscreen');
+            
+            // 全屏
+            if (screenfull.isEnabled) {
+                let classList = fullscreenElement.classList;
+                function toggleScreenFull(){
+                    screenfull.isFullscreen? classList.remove("exit"):classList.add("exit"); 
+                    screenfull.toggle(); 
+                }
+                fullscreenElement.addEventListener('click', toggleScreenFull);
+                // 处理息屏
+                var hidden, visibilityChange; 
+                if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support 
+                  hidden = "hidden";
+                  visibilityChange = "visibilitychange";
+                } else if (typeof document.msHidden !== "undefined") {
+                  hidden = "msHidden";
+                  visibilityChange = "msvisibilitychange";
+                } else if (typeof document.webkitHidden !== "undefined") {
+                  hidden = "webkitHidden";
+                  visibilityChange = "webkitvisibilitychange";
+                }
+                document.addEventListener(visibilityChange, () => {
+                    screenfull.exit();
+                    classList.remove("exit"); 
+                }, false);
+            }
+            
+            window.addEventListener(eventName, function(event) {
+                [yaw,pitch,roll] = getTaitBryanAngles(event);
+                //在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
+                //从右向左依次执行变换,rotate旋转是左手定则         
+                phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
+            }, false);
+            
+
+        }
+        window.onresize = () => {
+            // debugger
+            // 重新设置相机宽高比例
+            camera.aspect = window.innerWidth / window.innerHeight;
+            // 更新相机投影矩阵
+            camera.updateProjectionMatrix();
+            // 重新设置渲染器渲染范围
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            
+            var constraints = { audio: false, video: { facingMode: { exact: "environment" },aspectRatio:window.innerWidth/window.innerHeight } };
+            getCameraStream(constraints, video);
+        }
+        
+    </script>
+    <script src="./camera.js"></script>
 </body>
 </html>
