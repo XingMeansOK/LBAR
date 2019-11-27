@@ -31,6 +31,7 @@ var getCameraStream = (function() {
     return function(constraints,video) {
         navigator.mediaDevices.getUserMedia(constraints)
             .then(function(stream) {
+              // var videoTrack = stream.getVideoTracks()[0];
               // 旧的浏览器可能没有srcObject
               if ("srcObject" in video) {
                 video.srcObject = stream;
@@ -41,9 +42,12 @@ var getCameraStream = (function() {
               video.onloadedmetadata = function(e) {
                 video.play();
               };
+            
+              return stream.getVideoTracks()[0];
             })
             .catch(function(err) {
               console.log(err.name + ": " + err.message);
+              alert(err.name + ": " + err.message)
             });
     }
 
