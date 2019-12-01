@@ -5,7 +5,7 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"> 
     <meta name='apple-mobile-web-app-capable' content='yes' />
-    <title>GeoAR.js demo</title>
+    <title>GeoAR demo</title>
     <script src="https://cdn.bootcss.com/three.js/r83/three.js"></script>
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=4f0f5594c4e3c4ae3ce67df92638a154"></script> 
 </head>
@@ -14,7 +14,12 @@
 <link rel="stylesheet" href="./radar.css">
 
 <script src="./screenfull.min.js"></script>
+<!--     后置摄像头视频流 -->
+<script src="./cameraStream.js"></script>
+<!--     航空次序欧拉角 -->
 <script src="./deviceorientation.js"></script>
+<!--     处理POI和移动设备的相对位置 -->
+<script src="./processLocation.js"></script>
     
 <body style='margin: 0; overflow: hidden;'>
     <div id='mapcontainer'></div>
@@ -38,59 +43,44 @@
           <figure></figure>
         </div>
     </div>
+    <!--     全局变量 -->
+    <script src="./store.js"></script>
     <script>
-        var yaw = 0;
-        var pitch = 0;
-        var roll = 0;
-        var scene,camera,renderer = new THREE.WebGLRenderer({alpha: true });
-        var videoTrack; 
-        const video = document.querySelector('.camerastream');
-        const eventName = getDeviceOrientationEventName();
-        
-        
-        var constraints = { 
-            audio: false, 
-            video: { 
-                facingMode: { exact: "environment" },
-                // aspectRatio:1440/3120,
-                aspectRatio: window.innerHeight/window.innerWidth, // 高！！宽！！比
-                // width: { ideal: 3120 },
-                // height: { ideal: 1440 },
-                
-                // width: { ideal: 800 },
-                // height: { ideal: 400 },
-            } 
-        };
-        // isSafari();
+
         
         window.onload = () => {
 
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+            store.scene = new THREE.Scene();
+            store.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
    
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            document.body.appendChild( renderer.domElement );
+            store.renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( store.renderer.domElement );
+            
+            processLocation('mapcontainer');
 
-            var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            var geometry = new THREE.BoxGeometry( 1, 10, 1 );
             var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
             var cube = new THREE.Mesh( geometry, material );
-            scene.add( cube );
+            cube.position.set(0,0,0);
+            cube.rotateZ(Math.PI/4);
+            cube.rotateY(Math.PI/2);
+            store.scene.add( cube );
 
-            camera.position.z = 5;
+            store.camera.position.z = 50;
 
             var animate = function () {
                 requestAnimationFrame( animate );
 
-                cube.rotation.x += 0.01;
-                cube.rotation.y += 0.01;
+                // cube.rotation.x += 0.01;
+                // cube.rotation.y += 0.01;
 
-                renderer.render( scene, camera );
+                store.renderer.render( store.scene, store.camera );
             };
 
             animate();
             
-
-            videoTrack = getCameraStream(constraints, video);
+            const video = document.querySelector('.camerastream');
+            videoTrack = getCameraStream(video);
             
             const phoneElement = document.querySelector('.phone');
             const fullscreenElement = document.querySelector('.fullscreen');
@@ -121,11 +111,16 @@
                 }, false);
             }
             
-            window.addEventListener(eventName, function(event) {
+            window.addEventListener(store.eventName, function(event) {
                 [yaw,pitch,roll] = getTaitBryanAngles(event);
-                //在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
+                // threejs的旋转按照右手定则，和航空次序欧拉角一样都是动轴旋转，
+                var euler = new THREE.Euler(pitch*Math.PI/180, -yaw*Math.PI/180, -roll*Math.PI/180, 'YXZ');
+                store.camera.setRotationFromEuler(euler);
+                //css的旋转是定轴旋转：在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
+                // 定轴旋转等同于倒序执行动轴旋转
                 //从右向左依次执行变换,rotate旋转是左手定则         
                 phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
+                
             }, false);
             
 
@@ -133,17 +128,16 @@
         window.onresize = () => {
             // debugger
             // 重新设置相机宽高比例
-            camera.aspect = window.innerWidth / window.innerHeight;
+            store.camera.aspect = window.innerWidth / window.innerHeight;
             // 更新相机投影矩阵
-            camera.updateProjectionMatrix();
+            store.camera.updateProjectionMatrix();
             // 重新设置渲染器渲染范围
-            renderer.setSize( window.innerWidth, window.innerHeight );
+            store.renderer.setSize( window.innerWidth, window.innerHeight );
             
-            constraints.video.aspectRatio = window.innerHeight/window.innerWidth;
-            videoTrack = getCameraStream(constraints, video);
+            store.constraints.video.aspectRatio = window.innerHeight/window.innerWidth;
+            videoTrack = getCameraStream(video);
         }
         
     </script>
-    <script src="./camera.js"></script>
 </body>
 </html>
