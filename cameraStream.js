@@ -1,6 +1,6 @@
 var getCameraStream = (function() {
     
-    var constraints = { audio: false, video: { facingMode: { exact: "environment" } } };
+    // var constraints = { audio: false, video: { facingMode: { exact: "environment" } } };
     
     
     // 老的浏览器可能根本没有实现 mediaDevices，所以我们可以先设置一个空的对象
@@ -28,8 +28,8 @@ var getCameraStream = (function() {
       }
     }
     
-    return function(constraints,video) {
-        navigator.mediaDevices.getUserMedia(constraints)
+    return function(video) {
+        navigator.mediaDevices.getUserMedia(store.constraints)
             .then(function(stream) {
               // var videoTrack = stream.getVideoTracks()[0];
               // 旧的浏览器可能没有srcObject
@@ -47,7 +47,6 @@ var getCameraStream = (function() {
             })
             .catch(function(err) {
               console.log(err.name + ": " + err.message);
-              alert(err.name + ": " + err.message)
             });
     }
 
