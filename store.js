@@ -13,12 +13,10 @@ const store = {
         video: { 
             facingMode: { exact: "environment" },
             // aspectRatio:1440/3120,
-            // aspectRatio: window.innerHeight/window.innerWidth, // 高！！宽！！比
-            // width: { ideal: 3120 },
-            // height: { ideal: 1440 },
+            aspectRatio: { exact: window.innerHeight/window.innerWidth }, // 高！！宽！！比
 
-            width: { ideal: 800 },
-            height: { ideal: 400 },
+            // width: { ideal: 800 },
+            // height: { ideal: 400 },
         } 
     }
 }
