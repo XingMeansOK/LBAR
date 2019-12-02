@@ -51,29 +51,37 @@
         window.onload = () => {
 
             store.scene = new THREE.Scene();
-            store.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+            let VAOV = 2*Math.atan(18/27)*180/Math.PI;
+            store.camera = new THREE.PerspectiveCamera( VAOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
    
             store.renderer.setSize( window.innerWidth, window.innerHeight );
             document.body.appendChild( store.renderer.domElement );
             
             processLocation('mapcontainer');
 
-            var geometry = new THREE.BoxGeometry( 1, 10, 1 );
+            var geometry = new THREE.BoxGeometry( 10, 1, 1 );
             var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
             var cube = new THREE.Mesh( geometry, material );
-            cube.position.set(0,0,0);
-            cube.rotateZ(Math.PI/4);
+            cube.position.set(5,0,0);
             cube.rotateY(Math.PI/2);
             store.scene.add( cube );
+            
+            window.addEventListener(store.eventName, function(event) {
+                [yaw,pitch,roll] = getTaitBryanAngles(event);
+                // threejs的旋转按照右手定则，和航空次序欧拉角一样都是动轴旋转，
+                var euler = new THREE.Euler(pitch*Math.PI/180, -yaw*Math.PI/180, -(roll+window.orientation)*Math.PI/180, 'YXZ');
+                store.camera.setRotationFromEuler(euler);
+                //css的旋转是定轴旋转：在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
+                // 定轴旋转等同于倒序执行动轴旋转
+                //从右向左依次执行变换,rotate旋转是左手定则         
+                phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
 
-            store.camera.position.z = 50;
+            }, false);
+
 
             var animate = function () {
                 requestAnimationFrame( animate );
-
-                // cube.rotation.x += 0.01;
-                // cube.rotation.y += 0.01;
-
                 store.renderer.render( store.scene, store.camera );
             };
 
@@ -111,17 +119,6 @@
                 }, false);
             }
             
-            window.addEventListener(store.eventName, function(event) {
-                [yaw,pitch,roll] = getTaitBryanAngles(event);
-                // threejs的旋转按照右手定则，和航空次序欧拉角一样都是动轴旋转，
-                var euler = new THREE.Euler(pitch*Math.PI/180, -yaw*Math.PI/180, -roll*Math.PI/180, 'YXZ');
-                store.camera.setRotationFromEuler(euler);
-                //css的旋转是定轴旋转：在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
-                // 定轴旋转等同于倒序执行动轴旋转
-                //从右向左依次执行变换,rotate旋转是左手定则         
-                phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
-                
-            }, false);
             
 
         }
