@@ -132,6 +132,7 @@
             store.renderer.setSize( window.innerWidth, window.innerHeight );
             
             store.constraints.video.aspectRatio = window.innerHeight/window.innerWidth;
+            const video = document.querySelector('.camerastream');
             videoTrack = getCameraStream(video);
         }
         
