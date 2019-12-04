@@ -3,6 +3,8 @@ const store = {
     yaw: 0, // 移动设备的航空次序欧拉角
     pitch: 0,
     roll: 0,
+    originCoords: null,//虚拟坐标原点经纬度
+    poi: [],
     scene: null, // three场景
     camera: null, // three相机
     renderer: new THREE.WebGLRenderer({alpha: true }), // trree渲染器
@@ -15,8 +17,8 @@ const store = {
             // aspectRatio:1440/3120,
             aspectRatio: { exact: window.innerHeight/window.innerWidth }, // 高！！宽！！比
 
-            // width: { ideal: 800 },
-            // height: { ideal: 400 },
+            width: { ideal: 800 },
+            height: { ideal: 400 },
         } 
     }
 }
