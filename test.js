@@ -1,8 +1,18 @@
 function test_1() {
-    var geometry = new THREE.BoxGeometry( 10, 1, 1 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    var cube = new THREE.Mesh( geometry, material );
-    cube.position.set(5,0,0);
-    cube.rotateY(Math.PI/2);
-    store.scene.add( cube );
+    var loader = new THREE.GLTFLoader();
+    
+    loader.load( './Flamingo.glb', function ( gltf ) {
+        var mesh = gltf.scene.children[ 0 ];
+        var s = 0.35;
+        mesh.scale.set( s, s, s );
+        mesh.position.y = 15;
+        mesh.rotation.y = - 1;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        store.scene.add( mesh );
+        var mixer = new THREE.AnimationMixer( mesh );
+        mixer.clipAction( gltf.animations[ 0 ] ).setDuration( 1 ).play();
+        mixers.push( mixer );
+    } );
 }
+
