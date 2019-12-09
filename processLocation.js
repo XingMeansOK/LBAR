@@ -165,6 +165,41 @@ function processLocation(mapcontainer) {
     }
 }
 
+const getIntersects = (function(){
+    var mouseVector = new THREE.Vector3();
+    var raycaster = new THREE.Raycaster();
+    return function ( x, y ) {
+        x = ( x / window.innerWidth ) * 2 - 1;
+        y = - ( y / window.innerHeight ) * 2 + 1;
+        mouseVector.set( x, y, 0.95 );
+        raycaster.setFromCamera( mouseVector, store.camera );
+        return raycaster.intersectObject( store.scene, true );
+    }
+})()
+
+function onDocumentTouchEnd(event) {
+    event.preventDefault();
+    if ( store.selectedObject ) {
+        selectedObject.material.color.set( '#69f' );
+        selectedObject = null;
+    }
+    const touch = event.changedTouches[0]
+    var intersects = getIntersects( touch.pageX, touch.pageY );
+    if ( intersects.length > 0 ) {
+        var res = intersects.filter( function ( res ) {
+            return res && res.object;
+        } )[ 0 ];
+        if ( res && res.object ) {
+            selectedObject = res.object;
+            selectedObject.material.color.set( '#f00' );
+        }
+    }
+}
+
+
+
+
+
 
 
 
