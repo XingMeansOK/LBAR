@@ -1,7 +1,7 @@
 function test_1() {
     var loader = new THREE.GLTFLoader();
     
-    loader.load( './Flamingo.glb', function ( gltf ) {
+    loader.load( './flamingo.glb', function ( gltf ) {
         var mesh = gltf.scene.children[ 0 ];
         var s = 0.35;
         mesh.scale.set( s, s, s );
