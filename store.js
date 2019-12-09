@@ -1,5 +1,6 @@
 // 全局变量
 const store = {
+    selectedObject: null,
     yaw: 0, // 移动设备的航空次序欧拉角
     pitch: 0,
     roll: 0,
@@ -10,6 +11,7 @@ const store = {
     renderer: new THREE.WebGLRenderer({alpha: true }), // trree渲染器
     videoTack: null, // 后置摄像头视频流
     eventName: getDeviceOrientationEventName(), // 设备姿态变换事件名称
+    VAOV: 2*Math.atan(18/27)*180/Math.PI, // 相机竖直视角
     constraints: { // 视频流限制条件
         audio: false, 
         video: { 
