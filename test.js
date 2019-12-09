@@ -6,6 +6,7 @@ function test_1() {
         var s = 0.35;
         mesh.scale.set( s, s, s );
         mesh.position.y = 15;
+        mesh.position.x = 15;
         mesh.rotation.y = - 1;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
