@@ -1,6 +1,5 @@
 // 全局变量
 const store = {
-    selectedObject: null,
     yaw: 0, // 移动设备的航空次序欧拉角
     pitch: 0,
     roll: 0,
@@ -22,7 +21,9 @@ const store = {
             width: { ideal: 800 },
             height: { ideal: 400 },
         } 
-    }
+    },
+    mixers: [],
+    selectedObject: null,
 }
 
 // isSafari();
