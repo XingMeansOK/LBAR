@@ -6,13 +6,14 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"> 
     <meta name='apple-mobile-web-app-capable' content='yes' />
     <title>GeoAR demo</title>
-    <script src="https://cdn.bootcss.com/three.js/r83/three.js"></script>
+<!--     <script src="https://cdn.bootcss.com/three.js/r83/three.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=4f0f5594c4e3c4ae3ce67df92638a154"></script> 
 </head>
 
 <link rel="stylesheet" href="./index.css">
 <link rel="stylesheet" href="./radar.css">
-
+    
 <!--     后置摄像头视频流 -->
 <script src="./cameraStream.js"></script>
 <!--     航空次序欧拉角 -->
@@ -47,6 +48,12 @@
             store.scene = new THREE.Scene();
             store.camera = new THREE.PerspectiveCamera( store.VAOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
             store.renderer.setSize( window.innerWidth, window.innerHeight );
+            // 环境光
+            store.scene.add( new THREE.AmbientLight( 0x555555 ) );
+            var light = new THREE.SpotLight( 0xffffff, 1.5 );
+            light.position.set( 0, 2000, 2000 );
+            store.scene.add( light );
+            
             document.body.appendChild( store.renderer.domElement );
             const phoneElement = document.querySelector('.phone');   
             
@@ -66,14 +73,8 @@
 
             }, false);
             
-            var geometry = new THREE.BoxGeometry( 10, 1, 1 );
-            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-            var cube = new THREE.Mesh( geometry, material );
-            cube.position.set(5,0,0);
-            cube.rotateY(Math.PI/2);
-            store.scene.add( cube );
-
-
+            window.addEventListener( "touchend", onDocumentTouchEnd, false );
+            
             var animate = function () {
                 requestAnimationFrame( animate );
                 store.renderer.render( store.scene, store.camera );
@@ -85,9 +86,12 @@
             const video = document.querySelector('.camerastream');
             videoTrack = getCameraStream(video);
               
-            
+            test_1();
         }
         
     </script>
+    <!-- 测试 -->
+    <script src="./GLTFLoaders.js"></script>
+    <script src="./test.js"></script>
 </body>
 </html>
