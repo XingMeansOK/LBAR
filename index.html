@@ -75,7 +75,15 @@
             
             window.addEventListener( "touchend", onDocumentTouchEnd, false );
             
+            var mixers = [];
+            var clock = new THREE.Clock();
+            
             var animate = function () {
+                var delta = clock.getDelta();
+                for ( var i = 0; i < mixers.length; i ++ ) {
+                    mixers[ i ].update( delta );
+                }
+                
                 requestAnimationFrame( animate );
                 store.renderer.render( store.scene, store.camera );
             };
