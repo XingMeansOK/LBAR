@@ -7,7 +7,7 @@ const store = {
     poi: [],
     scene: null, // three场景
     camera: null, // three相机
-    renderer: new THREE.WebGLRenderer({alpha: true }), // trree渲染器
+    renderer: new THREE.WebGLRenderer({alpha: true,antialias: true}), // trree渲染器
     videoTack: null, // 后置摄像头视频流
     eventName: getDeviceOrientationEventName(), // 设备姿态变换事件名称
     VAOV: 2*Math.atan(18/27)*180/Math.PI, // 相机竖直视角
@@ -22,8 +22,8 @@ const store = {
             height: { ideal: 400 },
         } 
     },
-    mixers: [],
-    selectedObject: null,
+    mixers: [], // 动画集合
+    selectedObject: null, // 选中的虚拟物体
 }
 
 // isSafari();
