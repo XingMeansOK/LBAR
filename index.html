@@ -6,8 +6,8 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"> 
     <meta name='apple-mobile-web-app-capable' content='yes' />
     <title>GeoAR demo</title>
-<!--     <script src="https://cdn.bootcss.com/three.js/r83/three.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
+    <script src="./three.min.js"></script>
+<!--     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script> -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=4f0f5594c4e3c4ae3ce67df92638a154"></script> 
 </head>
 
@@ -24,7 +24,7 @@
 <body style='margin: 0; overflow: hidden;'>
     <div id='mapcontainer'></div>
     <video class="camerastream"></video>
-    <div class="radarbox">
+    <div class="radarbox" style="display:none">
        <div class="phone">
           <figure class="front-side">
             <div class="screen"></div>
@@ -46,7 +46,7 @@
         window.onload = () => {
 
             store.scene = new THREE.Scene();
-            store.camera = new THREE.PerspectiveCamera( store.VAOV, window.innerWidth/window.innerHeight, 0.1, 1000 );
+            store.camera = new THREE.PerspectiveCamera( store.VAOV, window.innerWidth/window.innerHeight, 0.1, 5000 );
             store.renderer.setSize( window.innerWidth, window.innerHeight );
             store.renderer.gammaInput = true;
             store.renderer.gammaOutput = true;
@@ -61,7 +61,7 @@
             const phoneElement = document.querySelector('.phone');   
             
             // 位置处理模块
-            processLocation('mapcontainer');
+            // processLocation('mapcontainer');
             
             // 姿态处理模块
             window.addEventListener(store.eventName, function(event) {
