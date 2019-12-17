@@ -24,7 +24,7 @@
 <body style='margin: 0; overflow: hidden;'>
     <div id='mapcontainer'></div>
     <video class="camerastream"></video>
-    <div class="radarbox" style="display:none">
+    <div class="radarbox">
        <div class="phone">
           <figure class="front-side">
             <div class="screen"></div>
@@ -38,6 +38,7 @@
           <figure></figure>
         </div>
     </div>
+    <div id="container"></div>
     <!--     全局变量 -->
     <script src="./store.js"></script>
     <script>
@@ -64,11 +65,12 @@
             hemiLight.position.set( 0, 50, 0 );
             store.scene.add( hemiLight );
             
-            document.body.appendChild( store.renderer.domElement );
+            store.container = document.getElementById("container");
+            store.container.appendChild( store.renderer.domElement );
             const phoneElement = document.querySelector('.phone');   
             
             // 位置处理模块
-            // processLocation('mapcontainer');
+            processLocation('mapcontainer');
             
             // 姿态处理模块
             window.addEventListener(store.eventName, function(event) {
@@ -80,6 +82,9 @@
                 // 定轴旋转等同于倒序执行动轴旋转
                 //从右向左依次执行变换,rotate旋转是左手定则         
                 phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
+                store.yaw = yaw;
+                store.pitch = pitch;
+                store.roll = roll;
 
             }, false);
             
@@ -89,8 +94,13 @@
             
             var animate = function () {
                 var delta = clock.getDelta();
-                for ( var i = 0; i < store.mixers.length; i ++ ) {
+                // 测试用
+                for ( let i = 0; i < store.mixers.length; i ++ ) {
                     store.mixers[ i ].update( delta );
+                }
+                // 使poi的label跟随poi，并始终保持水平
+                for(let i = 0; i<store.textlabels.length; i++) {
+                    store.textlabels[i].updatePosition();
                 }
                 
                 requestAnimationFrame( animate );
@@ -103,7 +113,7 @@
             const video = document.querySelector('.camerastream');
             videoTrack = getCameraStream(video);
               
-            test_3();
+            // test_7();
         }
         
     </script>
