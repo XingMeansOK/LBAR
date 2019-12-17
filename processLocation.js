@@ -1,12 +1,11 @@
 const locationComplete = (function() {
     
-    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    
     var DIST = 20; // 更新POI的最短距离
     
     // 当前位置
     var cpoint = null; //查询POI的中心点坐标
+    
+    var geometry = new THREE.CylinderGeometry(4, 0, 10, 4, 1);
     
     // 查询POI
     function searchPOI() {
@@ -21,14 +20,27 @@ const locationComplete = (function() {
                     let pois = result.poiList.pois
                     let names = pois.map( poi => poi.name )
                     const originCoords = {longitude:cpoint.getLng(),latitude:cpoint.getLat()};
+               
                     pois.forEach(place => {
                         const currentCoords = {longitude:place.location.lng,latitude:place.location.lat};
                         const position = calcVirtualPosition(originCoords, currentCoords);
-
-                        var cube = new THREE.Mesh( geometry, material );
-                        cube.position.set(position.x, position.y, position.z);
-                        store.scene.add( cube );
-                        store.poi.push( cube );
+                        
+                        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+                        var mesh = new THREE.Mesh( geometry, material );
+                        mesh.position.set(position.x, position.y, position.z);        
+                        
+                        mesh.updateMatrix();
+                        mesh.matrixAutoUpdate = false;
+                        
+                        // poi 的label（HTML）
+                        var text = createTextLabel();
+                        text.setHTML(place.name);
+                        text.setParent(mesh);
+                        store.textlabels.push(text);
+                        store.container.appendChild(text.element);
+                        
+                        store.scene.add( mesh );
+                        store.poi.push( mesh );
                     })
                 }else{
 
@@ -52,11 +64,17 @@ const locationComplete = (function() {
             if(dist > DIST) { // 走出去一定距离了，重新查询poi
                 store.originCoords = currentCoords;
                 store.camera.position.set(0, 0, 0); // 虚拟坐标系原点挪到当前位置
-                // 清空poi
+                // 清空poi (three Object3D)
                 store.poi.forEach( poi => {
                     store.scene.remove(poi);
                 })
                 store.poi.length = 0;
+                // 清空poi label (html)
+                store.textlabels.forEach( text => {
+                    store.container.remove(text.element);
+                })
+                store.textlabels.length = 0;
+                
                 searchPOI();
             } else { // 走不远，只更新虚拟相机虚拟坐标
                 store.camera.position.set(position.x, position.y, position.z)
@@ -66,6 +84,46 @@ const locationComplete = (function() {
 
     }
 })()
+
+function createTextLabel() {
+    var div = document.createElement('div');
+    div.className = 'text-label';
+    div.style.position = 'absolute';
+    div.style.width = 100;
+    div.style.height = 100;
+    div.innerHTML = "hi there!";
+    div.style.top = -1000;
+    div.style.left = -1000;
+
+    return {
+        element: div,
+        parent: false,
+        position: new THREE.Vector3(0,0,0),
+        setHTML: function(html) {
+            this.element.innerHTML = html;
+        },
+        setParent: function(threejsobj) {
+            this.parent = threejsobj;
+        },
+        updatePosition: function() {
+            if(parent) {
+                this.position.copy(this.parent.position);
+            }
+
+            var coords2d = this.get2DCoords(this.position, store.camera);
+            this.element.style.left = coords2d.x + 'px';
+            this.element.style.top = coords2d.y + 'px';
+            this.element.style.transform = `rotateZ(${-store.roll}deg)`
+        },
+        get2DCoords: function(position, camera) {
+            var vector = position.project(camera);
+            vector.x = (vector.x + 1)/2 * window.innerWidth;
+            vector.y = -(vector.y - 1)/2 * window.innerHeight;
+            return vector;
+        }
+    };
+}
+
 
 //解析定位错误信息
 function onError(data) {
