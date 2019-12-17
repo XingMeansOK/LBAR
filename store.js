@@ -23,6 +23,7 @@ const store = {
         } 
     },
     mixers: [], // 动画集合
+    textlabels: [],
     selectedObject: null, // 选中的虚拟物体
 }
 
