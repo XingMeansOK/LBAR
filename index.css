@@ -18,47 +18,36 @@ html, body {
     margin: auto;	/* margin-left、margin-right 均分*/
 }
 .text-label {
-    color: #000;
     font-family: "Fira Mono", Monaco, "Andale Mono", "Lucida Console", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
-    margin: -5px 0 0 15px;
-    pointer-events:none;
-    
-    width: 100px;
-    
-    transform-origin: top left;
+    pointer-events:none;  
+    transform-origin: left top;
 
     word-wrap:break-word;  
     word-break:break-all;  
     overflow: hidden;
+    
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+    font-size: 12px;
+    color: #212121;
+    width: 144px;
+    padding: 8px;
+    opacity: 0.75;
 }
-.amap-logo {
-    display: none;
+.text-label:after {
+    content: '...';
+    color: #1a73e8;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 14px;
 }
-.fullscreen {
-    position: fixed;
-    left: 50px;
-    bottom: 50px;
-    line-height: 0;
-}
-.fullscreen > svg:nth-child(1){
-    animation-iteration-count: infinite;
-    animation-name: twinkle;
-    animation-duration: 1s;
-}
-.fullscreen > svg:nth-child(2){
-    display: none;
-}
-.fullscreen.exit > svg:nth-child(2){
-    display: block;
-}
-.fullscreen.exit > svg:nth-child(1){
-    display: none;
-}
-@keyframes twinkle {
-    50% {
-        transform: scale(1.2);
-        opacity: 0.5;
-    }
+.text-label>div:first-child {
+    font-weight: bold;
 }
 .camerastream {
     width: 100%;
