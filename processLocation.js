@@ -1,6 +1,7 @@
 const locationComplete = (function() {
     
     var DIST = 20; // 更新POI的最短距离
+    var FIELD = 75; // 最大可视距离
     
     // 当前位置
     var cpoint = null; //查询POI的中心点坐标
@@ -15,7 +16,7 @@ const locationComplete = (function() {
             var placeSearch = new AMap.PlaceSearch({ 
                 type: '汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施', // 兴趣点类别
             });
-            placeSearch.searchNearBy('', cpoint, 2000, function(status, result) {
+            placeSearch.searchNearBy('', cpoint, 75, function(status, result) {
                 if(status=='complete'){
                     let pois = result.poiList.pois
                     let names = pois.map( poi => poi.name )
@@ -25,7 +26,7 @@ const locationComplete = (function() {
                         const currentCoords = {longitude:place.location.lng,latitude:place.location.lat};
                         const position = calcVirtualPosition(originCoords, currentCoords);
                         
-                        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+                        var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
                         var mesh = new THREE.Mesh( geometry, material );
                         mesh.position.set(position.x, position.y, position.z);        
                         
@@ -34,7 +35,7 @@ const locationComplete = (function() {
                         
                         // poi 的label（HTML）
                         var text = createTextLabel();
-                        text.setHTML(place.name);
+                        text.setHTML(place);
                         text.setParent(mesh);
                         store.textlabels.push(text);
                         store.container.appendChild(text.element);
@@ -49,6 +50,72 @@ const locationComplete = (function() {
         });
     }
     
+    function createTextLabel() {
+        var div = document.createElement('div');
+        div.className = 'text-label';
+        div.style.position = 'absolute';
+        div.style.width = 100;
+        div.style.height = 100;
+        div.innerHTML = "hi there!";
+        div.style.top = -1000;
+        div.style.left = -1000;
+
+        return {
+            element: div,
+            parent: false,
+            position: new THREE.Vector3(0,0,0),
+            setHTML: function(html) {
+                this.element.innerHTML = `<div>${html.name}</div><div>${html.address}</div><div>距离${html.distance}m</div>`;
+            },
+            setParent: function(threejsobj) {
+                this.parent = threejsobj;
+            },
+            updatePosition: function() {
+                if(parent) {
+                    this.position.copy(this.parent.position);
+                    let t1 = new THREE.Vector3(),t2 = new THREE.Vector3();
+                    t1.copy(this.parent.position);
+                    t1.sub(store.camera.position);// 相机到poi的向量
+                    this.distance = t1.length(); // 当前相机到poi的距离
+                    store.camera.getWorldDirection(t2);// 相机朝向
+
+
+                    if (t1.angleTo(t2) > Math.PI/2) {
+                        // 在视野外了
+                        this.element.style.visibility = 'hidden';
+                        return;
+                    }else {
+                        this.element.style.visibility = 'visible';
+                    }
+                }
+
+
+                var coords2d = this.get2DCoords(this.position, store.camera);
+                this.element.style.left = coords2d.x + 'px';
+                this.element.style.top = coords2d.y - 3*(FIELD - this.distance) + 'px'; // 越近位置越高，越远越低(接近地平线)
+                this.element.style.transform = `scale(${0.1*(FIELD/this.distance)+1}) rotateZ(${-store.roll}deg) translate(-50%,-50%) translateZ(0) `;
+                // translateY,越远的离地平线越近
+                // scale 越近的越大
+                if(coords2d.x < (window.innerWidth/2 + 25) && coords2d.x > (window.innerWidth/2 - 2)) {
+                    this.element.style.zIndex = 1000; // 如果POI在视图的中心，就把他放在最上层
+                    this.element.style.opacity = 1;
+                } else {
+                    this.element.style.zIndex = Math.round(FIELD - this.distance); // 越近的在越上层
+                    this.element.style.opacity = 0.75;
+                }
+                this.element.children[2].innerHTML = `距离${Math.round(this.distance)}m`;
+
+            },
+            get2DCoords: function(position, camera) {
+                var vector = position.project(camera);
+                vector.x = (vector.x + 1)/2 * window.innerWidth;
+                vector.y = -(vector.y - 1)/2 * window.innerHeight;
+                return vector;
+            }
+        };
+    }
+    
+    // 定位成功后调用
     return function(data) {
         // api返回的坐标
         cpoint = data.position; //中心点坐标
@@ -58,12 +125,12 @@ const locationComplete = (function() {
             searchPOI();
         } else { // 更新定位的情况
             // 物理相机在当前虚拟坐标系内的坐标
-            const position = calcVirtualPosition(store.originCoords, currentCoords);
+            var position = calcVirtualPosition(store.originCoords, currentCoords);
             // 与虚拟坐标系原点的距离
             const dist = Math.sqrt(position.x*position.x + position.z*position.z);
             if(dist > DIST) { // 走出去一定距离了，重新查询poi
-                store.originCoords = currentCoords;
-                store.camera.position.set(0, 0, 0); // 虚拟坐标系原点挪到当前位置
+                // store.originCoords = currentCoords;
+                // store.camera.position.set(0, 0, 0); // 虚拟坐标系原点挪到当前位置
                 // 清空poi (three Object3D)
                 store.poi.forEach( poi => {
                     store.scene.remove(poi);
@@ -78,51 +145,32 @@ const locationComplete = (function() {
                 searchPOI();
             } else { // 走不远，只更新虚拟相机虚拟坐标
                 store.camera.position.set(position.x, position.y, position.z)
+                // 使poi的label跟随poi，并始终保持水平
+                for(let i = 0; i<store.textlabels.length; i++) {
+                    store.textlabels[i].updatePosition();
+                }
             }
         }
         
-
+        // 留下定位标记
+        if(position) {
+            
+            let record = {};
+            record.timestamp=new Date().getTime();
+            record.yaw = store.yaw;
+            record.pitch = store.pitch;
+            record.roll = store.roll;
+            record.position = position;
+            record.gps = data
+            
+            store.record.push(record);
+            
+        }
+        
     }
 })()
 
-function createTextLabel() {
-    var div = document.createElement('div');
-    div.className = 'text-label';
-    div.style.position = 'absolute';
-    div.style.width = 100;
-    div.style.height = 100;
-    div.innerHTML = "hi there!";
-    div.style.top = -1000;
-    div.style.left = -1000;
 
-    return {
-        element: div,
-        parent: false,
-        position: new THREE.Vector3(0,0,0),
-        setHTML: function(html) {
-            this.element.innerHTML = html;
-        },
-        setParent: function(threejsobj) {
-            this.parent = threejsobj;
-        },
-        updatePosition: function() {
-            if(parent) {
-                this.position.copy(this.parent.position);
-            }
-
-            var coords2d = this.get2DCoords(this.position, store.camera);
-            this.element.style.left = coords2d.x + 'px';
-            this.element.style.top = coords2d.y + 'px';
-            this.element.style.transform = `rotateZ(${-store.roll}deg)`
-        },
-        get2DCoords: function(position, camera) {
-            var vector = position.project(camera);
-            vector.x = (vector.x + 1)/2 * window.innerWidth;
-            vector.y = -(vector.y - 1)/2 * window.innerHeight;
-            return vector;
-        }
-    };
-}
 
 
 //解析定位错误信息
