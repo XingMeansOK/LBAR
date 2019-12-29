@@ -25,18 +25,7 @@
     <div id='mapcontainer'></div>
     <video class="camerastream"></video>
     <div class="radarbox">
-       <div class="phone">
-          <figure class="front-side">
-            <div class="screen"></div>
-            <div class="camera"></div>
-          </figure>
-          <figure>
-          </figure>
-          <figure></figure>
-          <figure></figure>
-          <figure></figure>
-          <figure></figure>
-        </div>
+        
     </div>
     <div id="container"></div>
     <!--     全局变量 -->
@@ -47,17 +36,12 @@
         window.onload = () => {
 
             store.scene = new THREE.Scene();
-            store.camera = new THREE.PerspectiveCamera( store.VAOV, window.innerWidth/window.innerHeight, 0.1, 5000 );
+            store.camera = new THREE.PerspectiveCamera( store.VAOV, window.innerWidth/window.innerHeight, 0.1, 100 );
             store.renderer.setSize( window.innerWidth, window.innerHeight );
             store.renderer.gammaInput = true;
             store.renderer.gammaOutput = true;
             store.renderer.shadowMap.enabled = true;
             // 环境光
-            store.scene.add( new THREE.AmbientLight( 0x555555 ) );
-            var light = new THREE.SpotLight( 0xffffff, 1.5 );
-            light.position.set( 0, 2000, 2000 );
-            store.scene.add( light );
-            
             var hemiLight;
             hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
             hemiLight.color.setHSL( 0.6, 1, 0.6 );
@@ -66,8 +50,24 @@
             store.scene.add( hemiLight );
             
             store.container = document.getElementById("container");
-            store.container.appendChild( store.renderer.domElement );
-            const phoneElement = document.querySelector('.phone');   
+            // store.container.appendChild( store.renderer.domElement );
+            
+            // 小地图
+            var helper = new THREE.CameraHelper( store.camera );
+            store.scene.add( helper );
+            store.scene.background = new THREE.Color(0xffffff);
+            
+            // var axesHelper = new THREE.AxesHelper( 50 );
+            // store.scene.add( axesHelper );
+            
+            var renderer2 = new THREE.WebGLRenderer({antialias: true});
+            renderer2.setSize(150, 150);
+            document.querySelector('.radarbox').appendChild(renderer2.domElement);
+            var camera2 = new THREE.PerspectiveCamera( store.VAOV, 1, 0.1, 5000 );
+            // camera2.position.z = 50;
+            camera2.position.y = 125;
+            camera2.lookAt(store.scene.position);
+            store.scene.add(camera2);
             
             // 位置处理模块
             processLocation('mapcontainer');
@@ -78,33 +78,32 @@
                 // threejs的旋转按照右手定则，和航空次序欧拉角一样都是动轴旋转，
                 var euler = new THREE.Euler(pitch*Math.PI/180, -yaw*Math.PI/180, -(roll+window.orientation)*Math.PI/180, 'YXZ');
                 store.camera.setRotationFromEuler(euler);
-                //css的旋转是定轴旋转：在一次transform的过程中，坐标轴是不变的，也就是说即使先绕x轴转了，y轴依然是指向手机下方的
-                // 定轴旋转等同于倒序执行动轴旋转
-                //从右向左依次执行变换,rotate旋转是左手定则         
-                phoneElement.style.transform = `rotateY(${ - yaw}deg) rotateX(${- pitch}deg) rotateZ(${roll}deg) scale3d(0.075,0.075,0.075)`;
+                // store.camera.needsUpdate = true;
+                      
                 store.yaw = yaw;
                 store.pitch = pitch;
                 store.roll = roll;
 
             }, false);
             
-            window.addEventListener( "touchend", onDocumentTouchEnd, false );
+            // window.addEventListener( "touchend", onDocumentTouchEnd, false );
             
             var clock = new THREE.Clock();
             
             var animate = function () {
-                var delta = clock.getDelta();
-                // 测试用
-                for ( let i = 0; i < store.mixers.length; i ++ ) {
-                    store.mixers[ i ].update( delta );
-                }
                 // 使poi的label跟随poi，并始终保持水平
                 for(let i = 0; i<store.textlabels.length; i++) {
                     store.textlabels[i].updatePosition();
                 }
                 
                 requestAnimationFrame( animate );
-                store.renderer.render( store.scene, store.camera );
+                // store.renderer.render( store.scene, store.camera );
+                store.camera.updateMatrixWorld();
+                
+                // camera2.lookAt(store.camera);
+                
+                // 小地图相机始终位于场景相机的正上方
+                renderer2.render( store.scene, camera2 );
             };
 
             animate();
